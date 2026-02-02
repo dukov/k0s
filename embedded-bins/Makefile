@@ -13,7 +13,7 @@ DOCKER ?= docker
 SOURCE_DATE_EPOCH ?= $(shell git log -1 --pretty=%ct || date -u +%s)
 
 bindir = staging/${TARGET_OS}/bin
-posix_bins = runc kubelet containerd containerd-shim containerd-shim-runc-v2 kube-apiserver kube-scheduler kube-controller-manager etcd kine konnectivity-server xtables-legacy-multi xtables-nft-multi keepalived
+posix_bins = runc kubelet containerd containerd-shim containerd-shim-runc-v2 kube-apiserver kube-scheduler kube-controller-manager etcd kine konnectivity-server xtables-legacy-multi xtables-nft-multi keepalived bird birdc
 windows_bins = kubelet.exe containerd.exe containerd-shim-runhcs-v1.exe
 
 ifeq ($(TARGET_OS),windows)
@@ -62,6 +62,7 @@ $(bindir)/kubelet $(bindir)/kube-apiserver $(bindir)/kube-scheduler $(bindir)/ku
 $(bindir)/xtables-legacy-multi: .container.iptables
 $(bindir)/xtables-nft-multi: .container.iptables
 $(bindir)/keepalived: .container.keepalived
+$(bindir)/bird $(bindir)/birdc: .container.bird
 
 $(bindir)/kubelet.exe: .container.kubernetes.windows
 $(bindir)/containerd.exe $(bindir)/containerd-shim-runhcs-v1.exe: .container.containerd.windows

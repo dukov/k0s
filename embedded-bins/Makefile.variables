@@ -79,6 +79,12 @@ keepalived_build_cflags = -static -s
 keepalived_build_ldflags = -static
 keepalived_build_configure_flags = --disable-dynamic-linking
 
+bird_version = 3.1.2
+bird_buildimage = docker.io/library/alpine:$(alpine_patch_version)
+bird_build_cflags = -static -s
+bird_build_ldflags = --static
+bird_build_configure_flags = --enable-static
+
 clean-iid-files = \
 	for i in $(IID_FILES); do \
 	  [ -f "$$i" ] || continue; \
