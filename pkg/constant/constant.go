@@ -61,6 +61,10 @@ const (
 	KonnectivityServerUser = "konnectivity-server"
 	// KeepalivedUser defines the user to use for running keepalived
 	KeepalivedUser = "keepalived"
+	// BirdUser defines the user to use for running bird
+	BirdUser = "bird"
+	// BirdGroup defines the group to use for running bird
+	BirdGroup = "bird"
 
 	// KubernetesMajorMinorVersion defines the current embedded major.minor version info
 	KubernetesMajorMinorVersion = "1.35"

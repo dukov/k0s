@@ -36,6 +36,38 @@ type ControlPlaneLoadBalancingSpec struct {
 	// Keepalived contains configuration options related to the "Keepalived" type
 	// of load balancing.
 	Keepalived *KeepalivedSpec `json:"keepalived,omitempty"`
+
+	// Anycast contains configuration options related to the "Anycast" type
+	// of load balancing.
+	Anycast *AnycastSpec `json:"anycast,omitempty"`
+}
+
+type AnycastSpec struct {
+	// RouterID is the router ID for the Anycast load balancer. This is usually
+	// an IP address which is used to instantiate dynamic routing protocol connection.
+	// If is not configured, k0s will automatically generate a router ID.
+	RouterID string `json:"routerID,omitempty"`
+
+	// AnycastIP is the IP address of the Anycast load balancer.
+	// This IP address will be advertised as a /32 prefix.
+	AnycastIP string `json:"anycatIP,omitempty"`
+
+	// BGP contains configuration options related to the BGP session. Only iBGP is
+	// supported for now so local AS and neighbor AS are the same.
+	BGP []BGPSpec `json:"bgp,omitempty"`
+}
+
+type BGPSpec struct {
+	// Name is the name of the BGP session
+	Name string `json:"name,omitempty"`
+
+	// ASNumber is the AS number for the BGP session. This is usually
+	// an AS number which is used to instantiate BGP session.
+	ASNumber int `json:"asNumber,omitempty"`
+
+	// Neighbors is a list of BGP neighbors.
+	// This is a list of IP addresses of BGP peers.
+	Neighbors []string `json:"neighbors,omitempty"`
 }
 
 // CPLBType describes which type of load balancer should be deployed for the
