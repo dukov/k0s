@@ -72,12 +72,14 @@ type BGPSpec struct {
 
 // CPLBType describes which type of load balancer should be deployed for the
 // control plane load balancing. The default is [CPLBTypeKeepalived].
-// +kubebuilder:validation:Enum=Keepalived
+// +kubebuilder:validation:Enum=Keepalived;Anycast
 type CPLBType string
 
 const (
 	// CPLBTypeKeepalived selects Keepalived as the backing load balancer.
 	CPLBTypeKeepalived CPLBType = "Keepalived"
+	// CPLBTypeAnycast selects Anycast as the backing load balancer.
+	CPLBTypeAnycast CPLBType = "Anycast"
 )
 
 type KeepalivedSpec struct {
@@ -352,6 +354,7 @@ func (c *ControlPlaneLoadBalancingSpec) Validate() (errs []error) {
 	case CPLBTypeKeepalived:
 	case "":
 		c.Type = CPLBTypeKeepalived
+	case CPLBTypeAnycast:
 	default:
 		errs = append(errs, fmt.Errorf("unsupported CPLB type: %s. Only allowed value: %s", c.Type, CPLBTypeKeepalived))
 	}

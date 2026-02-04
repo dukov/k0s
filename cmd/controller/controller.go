@@ -275,14 +275,27 @@ func (c *command) start(ctx context.Context, flags *config.ControllerOptions, de
 			logrus.Info("Disabling k0s endpoint reconciler in favor of control plane load balancing")
 		}
 
-		nodeComponents.Add(ctx, &cplb.Keepalived{
-			K0sVars:         c.K0sVars,
-			Config:          cplbCfg.Keepalived,
-			DetailedLogging: debug,
-			LogConfig:       debug,
-			KubeConfigPath:  c.K0sVars.AdminKubeConfigPath,
-			APIPort:         nodeConfig.Spec.API.Port,
-		})
+		switch nodeConfig.Spec.Network.ControlPlaneLoadBalancing.Type {
+		case v1beta1.CPLBTypeKeepalived:
+			nodeComponents.Add(ctx, &cplb.Keepalived{
+				K0sVars:         c.K0sVars,
+				Config:          cplbCfg.Keepalived,
+				DetailedLogging: debug,
+				LogConfig:       debug,
+				KubeConfigPath:  c.K0sVars.AdminKubeConfigPath,
+				APIPort:         nodeConfig.Spec.API.Port,
+			})
+		case v1beta1.CPLBTypeAnycast:
+			nodeComponents.Add(ctx, &cplb.Anycast{
+				K0sVars:         c.K0sVars,
+				Config:          cplbCfg.Anycast,
+				DetailedLogging: debug,
+				LogConfig:       debug,
+				KubeConfigPath:  c.K0sVars.AdminKubeConfigPath,
+				APIPort:         nodeConfig.Spec.API.Port,
+				APIAddress:      nodeConfig.Spec.API.Address,
+			})
+		}
 	}
 
 	enableKonnectivity := controllerMode != config.SingleNodeMode && !slices.Contains(flags.DisableComponents, constant.KonnectivityServerComponentName)
