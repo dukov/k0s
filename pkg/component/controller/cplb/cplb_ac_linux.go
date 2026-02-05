@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"os"
 	"path/filepath"
 	"slices"
 	"text/template"
@@ -296,15 +297,26 @@ func (a *Anycast) setLinkIP(addr string, linkName string, link netlink.Link) err
 }
 
 func (a *Anycast) watchReconcilerUpdates(ctx context.Context) error {
-	// Wait for the supervisor to start bird before watching for endpoint changes
-	// TODO this should be defined as a method of Supervisor
+	// Wait for the supervisor to start bird and for the socket file to exist before watching for endpoint changes
 	process := a.supervisor.GetProcess()
-	for i := 0; process == nil; i++ {
+	socketExists := func() bool {
+		_, err := os.Stat(a.socketFilePath)
+		return err == nil
+	}
+	for i := 0; process == nil || !socketExists(); i++ {
 		if i > 3 {
-			a.log.Error("failed to start bird, supervisor process is nil")
+			if process == nil {
+				a.log.Error("failed to start bird, supervisor process is nil")
+			} else {
+				a.log.Errorf("bird socket file %q did not appear", a.socketFilePath)
+			}
 			return nil
 		}
-		a.log.Info("Waiting for bird to start")
+		if process == nil {
+			a.log.Info("Waiting for bird to start")
+		} else {
+			a.log.Infof("Waiting for bird socket %s", a.socketFilePath)
+		}
 		time.Sleep(5 * time.Second)
 		process = a.supervisor.GetProcess()
 	}
@@ -315,6 +327,12 @@ func (a *Anycast) watchReconcilerUpdates(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to create bird socket connection: %w", err)
 	}
+	// throw away the welcome message
+	_, err = birdSocketConn.Read()
+	if err != nil {
+		return fmt.Errorf("failed to read welcome message from bird socket: %w", err)
+	}
+
 	defer birdSocketConn.Close()
 	for range a.updateCh {
 		endpointIPs := a.reconciler.GetIPs()
@@ -353,6 +371,10 @@ protocol device {
 
 protocol direct direct1 {
     interface "lo";
+    ipv4 {
+        export none;
+        import all;
+    };
 }
 
 {{- range $i, $bgp := .BGP }}
